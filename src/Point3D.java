@@ -9,6 +9,7 @@ public class Point3D
 	public int x, y, z;
 	public float u, v, w; // uv coordinates for texture mapping
 	public ColorType c;
+	public Vector3D n;
 	public Point3D(int _x, int _y, int _z, ColorType _c)
 	{
 		u = 0;

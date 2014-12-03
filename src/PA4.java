@@ -44,6 +44,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	private ArrayList<Point2D> lineSegs;
 	private ArrayList<Point2D> triangles;
 	private boolean doSmoothShading;
+	private boolean phong = false;
 	private int Nsteps;
 
 	/** The quaternion which controls the rotation of the world. */
@@ -71,7 +72,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 
 		animator = new FPSAnimator(canvas, 60);
 
-		numTestCase = 2;
+		numTestCase = 3;
 		testCase = 0;
 		Nsteps = 12;
 
@@ -151,10 +152,16 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 
 		switch (testCase) {
 		case 0:
+			phong = false;
 			shadeTest(true); /* smooth shaded, sphere and torus */
 			break;
 		case 1:
+			phong = false;
 			shadeTest(false); /* flat shared, sphere and torus */
+			break;
+		case 2:
+			phong = true;
+			shadeTest(false);
 			break;
 		}
 	}
@@ -369,9 +376,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		Vector3D light_direction = new Vector3D((float) 0.0,
 				(float) (-1.0 / Math.sqrt(2.0)), (float) (1.0 / Math.sqrt(2.0)));
 		Vector3D light_position = new Vector3D(0.0f, 0f, 200f);
-		PointLight infLight = new PointLight(light_color, light_direction, light_position);
-		infLight.toggleRadial();
-		infLight.toggleAngular();
+		InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
 		AmbientLight ambLight = new AmbientLight(light_color, light_direction);
 		Light light = new Light();
 		light.addLight(infLight);
@@ -394,6 +399,8 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 
 		// projected triangle, with vertex colors
 		Point3D[] tri = { new Point3D(), new Point3D(), new Point3D() };
+		
+		Vector3D point = new Vector3D();
 
 		for (int k = 0; k < 4; ++k) // loop twice: shade sphere, then torus
 		{
@@ -439,7 +446,18 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 					if (view_vector.dotProduct(triangle_normal) > 0.0) // front-facing
 																		// triangle?
 					{
-						if (doSmooth) {
+						if (phong) {
+							n0 = mesh.n[i][j];
+							n1 = mesh.n[i][j + 1];
+							n2 = mesh.n[i + 1][j + 1];
+//							tri[0].c = light.applyLight(mats[k], view_vector,
+//									n0, v0);
+//							tri[1].c = light.applyLight(mats[k], view_vector,
+//									n1, v1);
+//							tri[2].c = light.applyLight(mats[k], view_vector,
+//									n2, v2);
+						}
+						else if (doSmooth) {
 							// vertex colors for Gouraud shading
 							n0 = mesh.n[i][j];
 							n1 = mesh.n[i][j + 1];
@@ -450,11 +468,12 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 									n1, v1);
 							tri[2].c = light.applyLight(mats[k], view_vector,
 									n2, v2);
+							
 						} else {
 							// flat shading: use the normal to the triangle
 							// itself
 							n2 = n1 = n0 = triangle_normal;
-							Vector3D point = new Vector3D((v0.x + v1.x + v2.x)/3, 
+							point = new Vector3D((v0.x + v1.x + v2.x)/3, 
 									(v0.y + v1.y + v2.y)/3, 
 									(v0.z + v1.z + v2.z)/3);
 							tri[2].c = tri[1].c = tri[0].c = light.applyLight(
@@ -472,8 +491,11 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						tri[2].y = (int) v2.y;
 						tri[2].z = (int) v2.z;
 
-						Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2],
-								doSmooth);
+						if (phong) {
+							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector, point);
+						} else {
+							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], doSmooth);
+						}
 					}
 
 					v0 = mesh.v[i][j];
@@ -484,7 +506,18 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 					if (view_vector.dotProduct(triangle_normal) > 0.0) // front-facing
 																		// triangle?
 					{
-						if (doSmooth) {
+						if (phong) {
+							n0 = mesh.n[i][j];
+							n1 = mesh.n[i + 1][j + 1];
+							n2 = mesh.n[i + 1][j];
+//							tri[0].c = light.applyLight(mats[k], view_vector,
+//									n0, v0);
+//							tri[1].c = light.applyLight(mats[k], view_vector,
+//									n1, v1);
+//							tri[2].c = light.applyLight(mats[k], view_vector,
+//									n2, v2);
+						}
+						else if (doSmooth) {
 							// vertex colors for Gouraud shading
 							n0 = mesh.n[i][j];
 							n1 = mesh.n[i + 1][j + 1];
@@ -499,7 +532,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 							// flat shading: use the normal to the triangle
 							// itself
 							n2 = n1 = n0 = triangle_normal;
-							Vector3D point = new Vector3D((v0.x + v1.x + v2.x)/3, 
+							point = new Vector3D((v0.x + v1.x + v2.x)/3, 
 									(v0.y + v1.y + v2.y)/3, 
 									(v0.z + v1.z + v2.z)/3);
 							tri[2].c = tri[1].c = tri[0].c = light.applyLight(
@@ -517,8 +550,11 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						tri[2].y = (int) v2.y;
 						tri[2].z = (int) v2.z;
 
-						Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2],
-								doSmooth);
+						if (phong) {
+							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector, point);
+						} else {
+							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], doSmooth);
+						}
 					}
 				}
 			}

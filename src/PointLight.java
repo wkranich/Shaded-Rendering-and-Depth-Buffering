@@ -52,7 +52,6 @@ public class PointLight extends Light {
 				dot = L.dotProduct(direction);
 				//System.out.println(dot);
 				if (dot < Math.cos(0.785398163)) {
-					System.out.println("GOT IT");
 					res.r *= Math.pow(dot, alpha);
 					res.g *= Math.pow(dot, alpha);
 					res.b *= Math.pow(dot, alpha);

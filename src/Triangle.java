@@ -254,7 +254,7 @@ public class Triangle {
 	}
 	
 	public static void drawLineWithPhong(BufferedImage buff, DepthBuffer depthBuff,
-			Point3D p1, Point3D p2, Light light, Material mat, Vector3D v, Vector3D p) {
+			Point3D p1, Point3D p2, Light light, Material mat, Vector3D v) {
 		float dx = p2.x - p1.x;
 		float dy = p2.y - p1.y;
 		float dz = p2.z - p1.z;
@@ -284,7 +284,7 @@ public class Triangle {
 		slope_nz = dnz / steps;
 		
 		Vector3D new_n = new Vector3D(pk.n);
-		pk.c = light.applyLight(mat, v, new_n, p);
+		pk.c = light.applyLight(mat, v, new_n, pk.toVector());
 
 		if (pk.y >= 0 && pk.y < buff.getHeight() && pk.x >= 0
 				&& pk.x < buff.getWidth()
@@ -307,7 +307,7 @@ public class Triangle {
 				new_n.y += slope_ny;
 				new_n.z += slope_nz;
 				
-				ColorType result = light.applyLight(mat, v, new_n, p);
+				ColorType result = light.applyLight(mat, v, new_n, pk.toVector());
 
 				int rgb = (int) ((Math.round(result.getRUint8()) << 16)
 						| (Math.round(result.getGUint8()) << 8) | Math.round(result.getBUint8()));
@@ -333,7 +333,7 @@ public class Triangle {
 				new_n.y += slope_ny;
 				new_n.z += slope_nz;
 				
-				ColorType result = light.applyLight(mat, v, new_n, p);
+				ColorType result = light.applyLight(mat, v, new_n, pk.toVector());
 
 				int rgb = (int) ((Math.round(result.getRUint8()) << 16)
 						| (Math.round(result.getGUint8()) << 8) | Math.round(result.getBUint8()));
@@ -352,7 +352,7 @@ public class Triangle {
 	
 	public static void drawTriangleWithPhong(BufferedImage buff,
 			DepthBuffer depthBuff, Point3D p1, Point3D p2, Point3D p3,
-			Vector3D n1, Vector3D n2, Vector3D n3, Light light, Material mat, Vector3D v, Vector3D point) {
+			Vector3D n1, Vector3D n2, Vector3D n3, Light light, Material mat, Vector3D v) {
 		// sort the triangle vertices by ascending x value
 		p1.n = n1;
 		p2.n = n2;
@@ -393,7 +393,7 @@ public class Triangle {
 			// loop over the columns for right-hand part of triangle
 			// filling from side a to side b of the span
 			for (x = p[0].x; x < p[1].x; ++x) {
-				drawLineWithPhong(buff, depthBuff, side_a, side_b, light, mat, v, point);
+				drawLineWithPhong(buff, depthBuff, side_a, side_b, light, mat, v);
 
 				++side_a.x;
 				++side_b.x;
@@ -414,8 +414,8 @@ public class Triangle {
 				side_a.n.z += dnz_a;
 				side_b.n.z += dnz_b;
 				
-				side_a.c = light.applyLight(mat, v, side_a.n, point);
-				side_b.c = light.applyLight(mat, v, side_b.n, point);
+				side_a.c = light.applyLight(mat, v, side_a.n, side_a.toVector());
+				side_b.c = light.applyLight(mat, v, side_b.n, side_b.toVector());
 			}
 		}
 
@@ -441,7 +441,7 @@ public class Triangle {
 		// loop over the columns for left-hand part of triangle
 		// filling from side a to side b of the span
 		for (x = p[1].x; x <= p[2].x; ++x) {
-			drawLineWithPhong(buff, depthBuff, side_a, side_b, light, mat, v, point);
+			drawLineWithPhong(buff, depthBuff, side_a, side_b, light, mat, v);
 
 			++side_a.x;
 			++side_b.x;
@@ -462,8 +462,8 @@ public class Triangle {
 			side_a.n.z += dnz_a;
 			side_b.n.z += dnz_b;
 			
-			side_a.c = light.applyLight(mat, v, side_a.n, point);
-			side_b.c = light.applyLight(mat, v, side_b.n, point);
+			side_a.c = light.applyLight(mat, v, side_a.n, side_a.toVector());
+			side_b.c = light.applyLight(mat, v, side_b.n, side_b.toVector());
 		}
 	}
 

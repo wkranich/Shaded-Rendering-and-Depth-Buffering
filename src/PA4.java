@@ -376,7 +376,9 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		Vector3D light_direction = new Vector3D((float) 0.0,
 				(float) (-1.0 / Math.sqrt(2.0)), (float) (1.0 / Math.sqrt(2.0)));
 		Vector3D light_position = new Vector3D(0.0f, 0f, 200f);
-		InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
+		PointLight infLight = new PointLight(light_color, light_direction, light_position);
+		//infLight.toggleAngular();
+		infLight.toggleRadial();
 		AmbientLight ambLight = new AmbientLight(light_color, light_direction);
 		Light light = new Light();
 		light.addLight(infLight);
@@ -492,7 +494,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						tri[2].z = (int) v2.z;
 
 						if (phong) {
-							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector, point);
+							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector);
 						} else {
 							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], doSmooth);
 						}
@@ -551,7 +553,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						tri[2].z = (int) v2.z;
 
 						if (phong) {
-							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector, point);
+							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector);
 						} else {
 							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], doSmooth);
 						}

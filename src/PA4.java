@@ -44,7 +44,9 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	private ArrayList<Point2D> lineSegs;
 	private ArrayList<Point2D> triangles;
 	private boolean doSmoothShading;
-	private boolean phong = false;
+	private boolean phong;
+	private boolean flat;
+	private boolean gouraud;
 	private int Nsteps;
 
 	/** The quaternion which controls the rotation of the world. */
@@ -56,6 +58,12 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	private int last_x = 0, last_y = 0;
 	/** Whether the world is being rotated. */
 	private boolean rotate_world = false;
+	
+	private List<Shape> objects;
+	
+	private ColorType ka;
+	private ColorType kd;
+	private ColorType ks;
 
 	public PA4() {
 		capabilities = new GLCapabilities(null);
@@ -87,6 +95,15 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		lineSegs = new ArrayList<Point2D>();
 		triangles = new ArrayList<Point2D>();
 		doSmoothShading = false;
+		gouraud = true;
+		phong = flat = false;
+		objects = new ArrayList<Shape>();
+		float r = rng.nextFloat();
+		float g = rng.nextFloat();
+		float b = rng.nextFloat();
+		ka = new ColorType(r/6, g/6, b/6);
+		ks = new ColorType(1.0, 1.0, 1.0);
+		kd = new ColorType(r,g,b);
 	}
 
 	public void run() {
@@ -121,6 +138,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		gl.glPixelStorei(GL2.GL_UNPACK_ALIGNMENT, 1);
 		gl.glDrawPixels(buff.getWidth(), buff.getHeight(), GL2.GL_BGR,
 				GL2.GL_UNSIGNED_BYTE, ByteBuffer.wrap(data));
+		
 		drawTestCase();
 	}
 
@@ -152,16 +170,13 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 
 		switch (testCase) {
 		case 0:
-			phong = false;
-			shadeTest(true); /* smooth shaded, sphere and torus */
+			shadeTest(); /* smooth shaded, sphere and torus */
 			break;
 		case 1:
-			phong = false;
-			shadeTest(false); /* flat shared, sphere and torus */
+			shadeTest(); /* flat shared, sphere and torus */
 			break;
 		case 2:
-			phong = true;
-			shadeTest(false);
+			shadeTest();
 			break;
 		}
 	}
@@ -202,9 +217,25 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		case 's':
 			doSmoothShading = !doSmoothShading;
 			break;
-		case 'T':
-		case 't':
-			testCase = (testCase + 1) % numTestCase;
+		case 'G':
+		case 'g':
+			testCase = 0;
+			gouraud = true;
+			flat = phong = false;
+			drawTestCase();
+			break;
+		case 'F':
+		case 'f':
+			flat = true;
+			gouraud = phong = false;
+			testCase = 1;
+			drawTestCase();
+			break;
+		case 'P':
+		case 'p':
+			phong = true;
+			flat = gouraud = false;
+			testCase = 2;
 			drawTestCase();
 			break;
 		case '<':
@@ -340,15 +371,26 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	// Nov 9, 2014 Stan Sclaroff -- removed line and triangle test cases
 	// **************************************************
 
-	void shadeTest(boolean doSmooth) {
+	void shadeTest() {
 		// the simple example scene includes one sphere and one torus
 		float radius = (float) 50.0;
+		
+		Material mat = new Material(ka, kd, ks, ns);
+		
 		Sphere sphere = new Sphere((float) 128.0, (float) 128.0, (float) 128.0,
-				(float) 1.5 * radius, Nsteps, Nsteps);
-		Ellipsoid ellipsoid = new Ellipsoid((float)128.0*3, (float)128.0, (float)128.0, (float)1.5*radius, (float)2*radius, (float)radius, Nsteps, Nsteps);
-		Cylinder cylinder = new Cylinder(256.0f*2f, 384.0f, 128.0f, (float)1.5*radius, (float)1.5*radius, Nsteps, Nsteps, radius);
+				(float) 1.5 * radius, Nsteps, Nsteps, mat);
+		Ellipsoid ellipsoid = new Ellipsoid((float)128.0*3, (float)128.0, (float)128.0, (float)1.5*radius, (float)2*radius, (float)radius, Nsteps, Nsteps, mat);
+		Cylinder cylinder = new Cylinder(256.0f*2f, 384.0f, 128.0f, (float)1.5*radius, (float)1.5*radius, Nsteps, Nsteps, radius, mat);
 		Torus torus = new Torus((float) 256.0, (float) 384.0, (float) 128.0,
-				(float) 0.8 * radius, (float) 1.25 * radius, Nsteps, Nsteps);
+				(float) 0.8 * radius, (float) 1.25 * radius, Nsteps, Nsteps, mat);
+		
+		objects = new ArrayList<Shape>();
+		
+		objects.add(sphere);
+		objects.add(ellipsoid);
+		objects.add(cylinder);
+		objects.add(torus);
+		
 
 		// view vector is defined along z axis
 		// this example assumes simple othorgraphic projection
@@ -358,27 +400,14 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		Vector3D view_vector = new Vector3D((float) 0.0, (float) 0.0,
 				(float) 1.0);
 
-		// material properties for the sphere and torus
-		// ambient, diffuse, and specular coefficients
-		// specular exponent is a global variable
-		ColorType torus_ka = new ColorType(0.0, 0.1, 0.2);
-		ColorType sphere_ka = new ColorType(0.1, 0.0, 0.1);
-		ColorType torus_kd = new ColorType(0.0, 0.5, 0.9);
-		ColorType sphere_kd = new ColorType(1.0, 0.0, 1.0);
-		ColorType torus_ks = new ColorType(1.0, 1.0, 1.0);
-		ColorType sphere_ks = new ColorType(1.0, 1.0, 1.0);
-		Material[] mats = { new Material(sphere_ka, sphere_kd, sphere_ks, ns),
-				new Material(torus_ka, torus_kd, torus_ks, ns), new Material(sphere_ka, sphere_kd, sphere_ks, ns),
-				new Material(sphere_ka, sphere_kd, sphere_ks, ns)};
-
 		// define one infinite light source, with color = white
 		ColorType light_color = new ColorType(1.0, 1.0, 1.0);
 		Vector3D light_direction = new Vector3D((float) 0.0,
 				(float) (-1.0 / Math.sqrt(2.0)), (float) (1.0 / Math.sqrt(2.0)));
 		Vector3D light_position = new Vector3D(0.0f, 0f, 200f);
-		PointLight infLight = new PointLight(light_color, light_direction, light_position);
+		InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
 		//infLight.toggleAngular();
-		infLight.toggleRadial();
+		//infLight.toggleRadial();
 		AmbientLight ambLight = new AmbientLight(light_color, light_direction);
 		Light light = new Light();
 		light.addLight(infLight);
@@ -459,16 +488,16 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 //							tri[2].c = light.applyLight(mats[k], view_vector,
 //									n2, v2);
 						}
-						else if (doSmooth) {
+						else if (gouraud) {
 							// vertex colors for Gouraud shading
 							n0 = mesh.n[i][j];
 							n1 = mesh.n[i][j + 1];
 							n2 = mesh.n[i + 1][j + 1];
-							tri[0].c = light.applyLight(mats[k], view_vector,
+							tri[0].c = light.applyLight(objects.get(k).mat, view_vector,
 									n0, v0);
-							tri[1].c = light.applyLight(mats[k], view_vector,
+							tri[1].c = light.applyLight(objects.get(k).mat, view_vector,
 									n1, v1);
-							tri[2].c = light.applyLight(mats[k], view_vector,
+							tri[2].c = light.applyLight(objects.get(k).mat, view_vector,
 									n2, v2);
 							
 						} else {
@@ -479,7 +508,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 									(v0.y + v1.y + v2.y)/3, 
 									(v0.z + v1.z + v2.z)/3);
 							tri[2].c = tri[1].c = tri[0].c = light.applyLight(
-									mats[k], view_vector, triangle_normal,
+									objects.get(k).mat, view_vector, triangle_normal,
 									point);
 						}
 
@@ -494,9 +523,9 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						tri[2].z = (int) v2.z;
 
 						if (phong) {
-							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector);
+							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, objects.get(k).mat, view_vector);
 						} else {
-							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], doSmooth);
+							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], gouraud);
 						}
 					}
 
@@ -519,16 +548,16 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 //							tri[2].c = light.applyLight(mats[k], view_vector,
 //									n2, v2);
 						}
-						else if (doSmooth) {
+						else if (gouraud) {
 							// vertex colors for Gouraud shading
 							n0 = mesh.n[i][j];
 							n1 = mesh.n[i + 1][j + 1];
 							n2 = mesh.n[i + 1][j];
-							tri[0].c = light.applyLight(mats[k], view_vector,
+							tri[0].c = light.applyLight(objects.get(k).mat, view_vector,
 									n0, v0);
-							tri[1].c = light.applyLight(mats[k], view_vector,
+							tri[1].c = light.applyLight(objects.get(k).mat, view_vector,
 									n1, v1);
-							tri[2].c = light.applyLight(mats[k], view_vector,
+							tri[2].c = light.applyLight(objects.get(k).mat, view_vector,
 									n2, v2);
 						} else {
 							// flat shading: use the normal to the triangle
@@ -538,7 +567,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 									(v0.y + v1.y + v2.y)/3, 
 									(v0.z + v1.z + v2.z)/3);
 							tri[2].c = tri[1].c = tri[0].c = light.applyLight(
-									mats[k], view_vector, triangle_normal,
+									objects.get(k).mat, view_vector, triangle_normal,
 									point);
 						}
 
@@ -553,9 +582,9 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						tri[2].z = (int) v2.z;
 
 						if (phong) {
-							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, mats[k], view_vector);
+							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, objects.get(k).mat, view_vector);
 						} else {
-							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], doSmooth);
+							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], gouraud);
 						}
 					}
 				}

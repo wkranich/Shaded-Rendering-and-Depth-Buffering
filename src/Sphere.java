@@ -7,7 +7,7 @@
  *
  */
 
-public class Sphere {
+public class Sphere extends Shape {
 	private Vector3D center;
 	private float r;
 	private int m, n;
@@ -19,11 +19,12 @@ public class Sphere {
 	private final float vmax = (float)Math.PI;
 	
 	
-	public Sphere(float x, float y, float z, float r, int m, int n) {
+	public Sphere(float x, float y, float z, float r, int m, int n, Material mat) {
 		this.center = new Vector3D(x, y, z);
 		this.r = r;
 		this.m = m;
 		this.n = n;
+		super.mat = mat;
 		initMesh();
 	}
 	

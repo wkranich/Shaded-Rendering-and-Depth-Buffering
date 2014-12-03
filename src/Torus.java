@@ -5,7 +5,7 @@
  * History: Nov 25, 2014 Created by William Kranich
  * 						 Referencing code written by Stan Sclaroff
  */
-public class Torus {
+public class Torus extends Shape {
 	private Vector3D center;
 	private float r, r_axial;
 	private int m, n;
@@ -16,12 +16,13 @@ public class Torus {
 	private final float vmin = (float)-Math.PI;
 	private final float vmax = (float)Math.PI;
 	
-	public Torus(float x, float y, float z, float r, float r_axial, int m, int n) {
+	public Torus(float x, float y, float z, float r, float r_axial, int m, int n, Material mat) {
 		center = new Vector3D(x, y, z);
 		this.r = r;
 		this.r_axial = r_axial;
 		this.m = m;
 		this.n = n;
+		super.mat = mat;
 		initMesh();
 	}
 	

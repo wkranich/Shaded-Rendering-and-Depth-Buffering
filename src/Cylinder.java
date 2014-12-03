@@ -5,7 +5,7 @@
  * History: Nov 27, 2014 Created by William Kranich
  * 
  */
-public class Cylinder {
+public class Cylinder extends Shape{
 	private Vector3D center;
 	private float rx, ry;
 	private int m, n;
@@ -16,7 +16,7 @@ public class Cylinder {
 	private final float vmin = (float)-Math.PI;
 	private final float vmax = (float)Math.PI;
 	
-	public Cylinder(float x, float y, float z, float rx, float ry, int m, int n, float u) {
+	public Cylinder(float x, float y, float z, float rx, float ry, int m, int n, float u, Material mat) {
 		center = new Vector3D(x, y, z);
 		this.rx = rx;
 		this.ry = ry;
@@ -24,6 +24,7 @@ public class Cylinder {
 		this.n = n;
 		this.umin = -u;
 		this.umax = u;
+		super.mat = mat;
 		initMesh();
 	}
 	

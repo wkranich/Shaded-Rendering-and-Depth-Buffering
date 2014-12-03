@@ -8,7 +8,7 @@
  *
  */
 
-public class Ellipsoid {
+public class Ellipsoid extends Shape{
 	private Vector3D center;
 	private float rx, ry, rz;
 	private int m, n;
@@ -20,13 +20,14 @@ public class Ellipsoid {
 	private final float vmax = (float)Math.PI;
 	
 	
-	public Ellipsoid(float x, float y, float z, float rx, float ry, float rz, int m, int n) {
+	public Ellipsoid(float x, float y, float z, float rx, float ry, float rz, int m, int n, Material mat) {
 		this.center = new Vector3D(x, y, z);
 		this.rx = rx;
 		this.ry = ry;
 		this.rz = rz;
 		this.m = m;
 		this.n = n;
+		super.mat = mat;
 		initMesh();
 	}
 	

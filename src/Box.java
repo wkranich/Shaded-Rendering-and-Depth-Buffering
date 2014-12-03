@@ -5,7 +5,7 @@
  * 
  * History: Nov 27, 2014 Created by William Kranich
  */
-public class Box {
+public class Box extends Shape{
 	private Vector3D center, vec, uvec, vvec;
 	private float r;
 	private int m, n;
@@ -13,7 +13,7 @@ public class Box {
 	
 	private float umax, umin, vmax, vmin;
 	
-	public Box(float x, float y, float z, float r, int m, int n) {
+	public Box(float x, float y, float z, float r, int m, int n, Material mat) {
 		this.center = new Vector3D(x, y, z);
 		this.r = r;
 		this.uvec = new Vector3D(0, 1*this.r, 0);
@@ -24,6 +24,7 @@ public class Box {
 		this.umax = 1;
 		this.vmin = -1;
 		this.vmax = 1;
+		super.mat = mat;
 		this.vec = center.plus(new Vector3D(-this.r, 0, 0));
 		initMesh();
 	}

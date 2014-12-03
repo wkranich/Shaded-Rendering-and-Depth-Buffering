@@ -206,8 +206,9 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 			break;
 		case 'R':
 		case 'r':
-			color = new ColorType(rng.nextFloat(), rng.nextFloat(),
+			kd = new ColorType(rng.nextFloat(), rng.nextFloat(),
 					rng.nextFloat());
+			ka = new ColorType(kd.r/6, kd.g/6, kd.b/6);
 			break;
 		case 'C':
 		case 'c':
@@ -383,6 +384,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		Cylinder cylinder = new Cylinder(256.0f*2f, 384.0f, 128.0f, (float)1.5*radius, (float)1.5*radius, Nsteps, Nsteps, radius, mat);
 		Torus torus = new Torus((float) 256.0, (float) 384.0, (float) 128.0,
 				(float) 0.8 * radius, (float) 1.25 * radius, Nsteps, Nsteps, mat);
+		Box box = new Box(128.0f*5, 128.0f, 128.0f, 1.5f*radius, Nsteps, Nsteps, mat);
 		
 		objects = new ArrayList<Shape>();
 		
@@ -390,6 +392,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		objects.add(ellipsoid);
 		objects.add(cylinder);
 		objects.add(torus);
+		objects.add(box);
 		
 
 		// view vector is defined along z axis
@@ -412,51 +415,45 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		Light light = new Light();
 		light.addLight(infLight);
 		light.addLight(ambLight);
-		
-
-		// normal to the plane of a triangle
-		// to be used in backface culling / backface rejection
-		Vector3D triangle_normal = new Vector3D();
 
 		// a triangle mesh
-		Mesh3D mesh,top = null,bot = null;
+		Mesh3D mesh;
 
 		int i, j, n, m;
 		
 		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
 
-		// temporary variables for triangle 3D vertices and 3D normals
-		Vector3D v0, v1, v2, n0, n1, n2;
-
-		// projected triangle, with vertex colors
-		Point3D[] tri = { new Point3D(), new Point3D(), new Point3D() };
-		
-		Vector3D point = new Vector3D();
-
-		for (int k = 0; k < 4; ++k) // loop twice: shade sphere, then torus
+		for (int k = 0; k < 5; ++k) // loop twice: shade sphere, then torus
 		{
 			if (k == 0) {
 				mesh = sphere.mesh;
 				n = sphere.getN();
 				m = sphere.getM();
+				drawObject(mesh, sphere, n, m, view_vector, light, depthBuff);
 			} else if (k == 1) {
 				mesh = torus.mesh;
 				n = torus.getN();
 				m = torus.getM();
+				drawObject(mesh, torus, n, m, view_vector, light, depthBuff);
 			} else if (k == 2) {
 				mesh = ellipsoid.mesh;
 				n = ellipsoid.getN();
 				m = ellipsoid.getM();
-			} else {
+				drawObject(mesh, ellipsoid, n, m, view_vector, light, depthBuff);
+			} else if (k == 3) {
 				mesh = cylinder.mesh;
-				top = cylinder.top;
-				bot = cylinder.bot;
+				//top = cylinder.top;
+				//bot = cylinder.bot;
 				n = cylinder.getN();
 				m = cylinder.getM();
+				drawObject(mesh, cylinder, n, m, view_vector, light, depthBuff);
+			} else {
+				n = box.getN();
+				m = box.getM();
+				for (Mesh3D boxMesh : box.meshes) {
+					drawObject(boxMesh, box, n, m, view_vector, light, depthBuff);
+				}
 			}
-
-			// rotate the surface's 3D mesh using quaternion
-			mesh.rotateMesh(viewing_quaternion, viewing_center);
 
 			// draw triangles for the current surface, using vertex colors
 			// this works for Gouraud and flat shading only (not Phong)
@@ -467,131 +464,149 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 //				n0 = top
 //				n1 = 
 //			}
-			for (i = 0; i < m - 1; ++i) {
-				for (j = 0; j < n - 1; ++j) {
-					v0 = mesh.v[i][j];
-					v1 = mesh.v[i][j + 1];
-					v2 = mesh.v[i + 1][j + 1];
-					triangle_normal = computeTriangleNormal(v0, v1, v2);
+		}
+	}
+	
+	private void drawObject(Mesh3D mesh, Shape obj, int n, int m, Vector3D view_vector, Light light, DepthBuffer depthBuff) {
+		int i, j;
+		// temporary variables for triangle 3D vertices and 3D normals
+		Vector3D v0, v1, v2, n0, n1, n2;
 
-					if (view_vector.dotProduct(triangle_normal) > 0.0) // front-facing
-																		// triangle?
-					{
-						if (phong) {
-							n0 = mesh.n[i][j];
-							n1 = mesh.n[i][j + 1];
-							n2 = mesh.n[i + 1][j + 1];
-//							tri[0].c = light.applyLight(mats[k], view_vector,
-//									n0, v0);
-//							tri[1].c = light.applyLight(mats[k], view_vector,
-//									n1, v1);
-//							tri[2].c = light.applyLight(mats[k], view_vector,
-//									n2, v2);
-						}
-						else if (gouraud) {
-							// vertex colors for Gouraud shading
-							n0 = mesh.n[i][j];
-							n1 = mesh.n[i][j + 1];
-							n2 = mesh.n[i + 1][j + 1];
-							tri[0].c = light.applyLight(objects.get(k).mat, view_vector,
-									n0, v0);
-							tri[1].c = light.applyLight(objects.get(k).mat, view_vector,
-									n1, v1);
-							tri[2].c = light.applyLight(objects.get(k).mat, view_vector,
-									n2, v2);
-							
-						} else {
-							// flat shading: use the normal to the triangle
-							// itself
-							n2 = n1 = n0 = triangle_normal;
-							point = new Vector3D((v0.x + v1.x + v2.x)/3, 
-									(v0.y + v1.y + v2.y)/3, 
-									(v0.z + v1.z + v2.z)/3);
-							tri[2].c = tri[1].c = tri[0].c = light.applyLight(
-									objects.get(k).mat, view_vector, triangle_normal,
-									point);
-						}
+		// projected triangle, with vertex colors
+		Point3D[] tri = { new Point3D(), new Point3D(), new Point3D() };
+		
+		Vector3D point = new Vector3D();
+		
+		// normal to the plane of a triangle
+		// to be used in backface culling / backface rejection
+		Vector3D triangle_normal = new Vector3D();
+		
+		// rotate the surface's 3D mesh using quaternion
+		mesh.rotateMesh(viewing_quaternion, viewing_center);
+		
+		for (i = 0; i < m - 1; ++i) {
+			for (j = 0; j < n - 1; ++j) {
+				v0 = mesh.v[i][j];
+				v1 = mesh.v[i][j + 1];
+				v2 = mesh.v[i + 1][j + 1];
+				triangle_normal = computeTriangleNormal(v0, v1, v2);
 
-						tri[0].x = (int) v0.x;
-						tri[0].y = (int) v0.y;
-						tri[0].z = (int) v0.z;
-						tri[1].x = (int) v1.x;
-						tri[1].y = (int) v1.y;
-						tri[1].z = (int) v1.z;
-						tri[2].x = (int) v2.x;
-						tri[2].y = (int) v2.y;
-						tri[2].z = (int) v2.z;
-
-						if (phong) {
-							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, objects.get(k).mat, view_vector);
-						} else {
-							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], gouraud);
-						}
+				if (view_vector.dotProduct(triangle_normal) > 0.0) // front-facing
+																	// triangle?
+				{
+					if (phong) {
+						n0 = mesh.n[i][j];
+						n1 = mesh.n[i][j + 1];
+						n2 = mesh.n[i + 1][j + 1];
+//						tri[0].c = light.applyLight(mats[k], view_vector,
+//								n0, v0);
+//						tri[1].c = light.applyLight(mats[k], view_vector,
+//								n1, v1);
+//						tri[2].c = light.applyLight(mats[k], view_vector,
+//								n2, v2);
+					}
+					else if (gouraud) {
+						// vertex colors for Gouraud shading
+						n0 = mesh.n[i][j];
+						n1 = mesh.n[i][j + 1];
+						n2 = mesh.n[i + 1][j + 1];
+						tri[0].c = light.applyLight(obj.mat, view_vector,
+								n0, v0);
+						tri[1].c = light.applyLight(obj.mat, view_vector,
+								n1, v1);
+						tri[2].c = light.applyLight(obj.mat, view_vector,
+								n2, v2);
+						
+					} else {
+						// flat shading: use the normal to the triangle
+						// itself
+						n2 = n1 = n0 = triangle_normal;
+						point = new Vector3D((v0.x + v1.x + v2.x)/3, 
+								(v0.y + v1.y + v2.y)/3, 
+								(v0.z + v1.z + v2.z)/3);
+						tri[2].c = tri[1].c = tri[0].c = light.applyLight(
+								obj.mat, view_vector, triangle_normal,
+								point);
 					}
 
-					v0 = mesh.v[i][j];
-					v1 = mesh.v[i + 1][j + 1];
-					v2 = mesh.v[i + 1][j];
-					triangle_normal = computeTriangleNormal(v0, v1, v2);
+					tri[0].x = (int) v0.x;
+					tri[0].y = (int) v0.y;
+					tri[0].z = (int) v0.z;
+					tri[1].x = (int) v1.x;
+					tri[1].y = (int) v1.y;
+					tri[1].z = (int) v1.z;
+					tri[2].x = (int) v2.x;
+					tri[2].y = (int) v2.y;
+					tri[2].z = (int) v2.z;
 
-					if (view_vector.dotProduct(triangle_normal) > 0.0) // front-facing
-																		// triangle?
-					{
-						if (phong) {
-							n0 = mesh.n[i][j];
-							n1 = mesh.n[i + 1][j + 1];
-							n2 = mesh.n[i + 1][j];
-//							tri[0].c = light.applyLight(mats[k], view_vector,
-//									n0, v0);
-//							tri[1].c = light.applyLight(mats[k], view_vector,
-//									n1, v1);
-//							tri[2].c = light.applyLight(mats[k], view_vector,
-//									n2, v2);
-						}
-						else if (gouraud) {
-							// vertex colors for Gouraud shading
-							n0 = mesh.n[i][j];
-							n1 = mesh.n[i + 1][j + 1];
-							n2 = mesh.n[i + 1][j];
-							tri[0].c = light.applyLight(objects.get(k).mat, view_vector,
-									n0, v0);
-							tri[1].c = light.applyLight(objects.get(k).mat, view_vector,
-									n1, v1);
-							tri[2].c = light.applyLight(objects.get(k).mat, view_vector,
-									n2, v2);
-						} else {
-							// flat shading: use the normal to the triangle
-							// itself
-							n2 = n1 = n0 = triangle_normal;
-							point = new Vector3D((v0.x + v1.x + v2.x)/3, 
-									(v0.y + v1.y + v2.y)/3, 
-									(v0.z + v1.z + v2.z)/3);
-							tri[2].c = tri[1].c = tri[0].c = light.applyLight(
-									objects.get(k).mat, view_vector, triangle_normal,
-									point);
-						}
+					if (phong) {
+						Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, obj.mat, view_vector);
+					} else {
+						Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], gouraud);
+					}
+				}
 
-						tri[0].x = (int) v0.x;
-						tri[0].y = (int) v0.y;
-						tri[0].z = (int) v0.z;
-						tri[1].x = (int) v1.x;
-						tri[1].y = (int) v1.y;
-						tri[1].z = (int) v1.z;
-						tri[2].x = (int) v2.x;
-						tri[2].y = (int) v2.y;
-						tri[2].z = (int) v2.z;
+				v0 = mesh.v[i][j];
+				v1 = mesh.v[i + 1][j + 1];
+				v2 = mesh.v[i + 1][j];
+				triangle_normal = computeTriangleNormal(v0, v1, v2);
 
-						if (phong) {
-							Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, objects.get(k).mat, view_vector);
-						} else {
-							Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], gouraud);
-						}
+				if (view_vector.dotProduct(triangle_normal) > 0.0) // front-facing
+																	// triangle?
+				{
+					if (phong) {
+						n0 = mesh.n[i][j];
+						n1 = mesh.n[i + 1][j + 1];
+						n2 = mesh.n[i + 1][j];
+//						tri[0].c = light.applyLight(mats[k], view_vector,
+//								n0, v0);
+//						tri[1].c = light.applyLight(mats[k], view_vector,
+//								n1, v1);
+//						tri[2].c = light.applyLight(mats[k], view_vector,
+//								n2, v2);
+					}
+					else if (gouraud) {
+						// vertex colors for Gouraud shading
+						n0 = mesh.n[i][j];
+						n1 = mesh.n[i + 1][j + 1];
+						n2 = mesh.n[i + 1][j];
+						tri[0].c = light.applyLight(obj.mat, view_vector,
+								n0, v0);
+						tri[1].c = light.applyLight(obj.mat, view_vector,
+								n1, v1);
+						tri[2].c = light.applyLight(obj.mat, view_vector,
+								n2, v2);
+					} else {
+						// flat shading: use the normal to the triangle
+						// itself
+						n2 = n1 = n0 = triangle_normal;
+						point = new Vector3D((v0.x + v1.x + v2.x)/3, 
+								(v0.y + v1.y + v2.y)/3, 
+								(v0.z + v1.z + v2.z)/3);
+						tri[2].c = tri[1].c = tri[0].c = light.applyLight(
+								obj.mat, view_vector, triangle_normal,
+								point);
+					}
+
+					tri[0].x = (int) v0.x;
+					tri[0].y = (int) v0.y;
+					tri[0].z = (int) v0.z;
+					tri[1].x = (int) v1.x;
+					tri[1].y = (int) v1.y;
+					tri[1].z = (int) v1.z;
+					tri[2].x = (int) v2.x;
+					tri[2].y = (int) v2.y;
+					tri[2].z = (int) v2.z;
+
+					if (phong) {
+						Triangle.drawTriangleWithPhong(buff, depthBuff, tri[0], tri[1], tri[2], n0, n1, n2, light, obj.mat, view_vector);
+					} else {
+						Triangle.drawTriangle(buff, depthBuff, tri[0], tri[1], tri[2], gouraud);
 					}
 				}
 			}
 		}
 	}
-
 	// helper method that computes the unit normal to the plane of the triangle
 	// degenerate triangles yield normal that is numerically zero
 	private Vector3D computeTriangleNormal(Vector3D v0, Vector3D v1, Vector3D v2) {

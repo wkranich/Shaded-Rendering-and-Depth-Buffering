@@ -16,7 +16,7 @@ public class Box extends Shape{
 	public Box(float x, float y, float z, float r, int m, int n, Material mat) {
 		this.center = new Vector3D(x, y, z);
 		this.r = r;
-		this.uvec = new Vector3D(0, 1*this.r, 0);
+		this.uvec = new Vector3D(0, -1*this.r, 0);
 		this.vvec = new Vector3D(0, 0, 1*this.r);
 		this.m = m;
 		this.n = n;
@@ -58,11 +58,11 @@ public class Box extends Shape{
 		return this.r;
 	}
 	
-	public int get_m(){
+	public int getM(){
 		return this.m;
 	}
 	
-	public int get_n(){
+	public int getN(){
 		return this.n;
 	}
 	

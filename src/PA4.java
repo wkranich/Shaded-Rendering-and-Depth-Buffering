@@ -61,9 +61,12 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	
 	private List<Shape> objects;
 	
-	private ColorType ka;
-	private ColorType kd;
-	private ColorType ks;
+	private Light light;
+	private Light selectedLight;
+	private boolean toggleLights;
+	private boolean lightsInitialized;
+	private ColorType ka, kd, ks, kdtemp, katemp;
+	private Boolean specular, diffuse, ambient;
 
 	public PA4() {
 		capabilities = new GLCapabilities(null);
@@ -95,15 +98,27 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		lineSegs = new ArrayList<Point2D>();
 		triangles = new ArrayList<Point2D>();
 		doSmoothShading = false;
+		
 		gouraud = true;
 		phong = flat = false;
+		
 		objects = new ArrayList<Shape>();
+		
+		light = new Light();
+		selectedLight = null;
+		toggleLights = false;
+		
 		float r = rng.nextFloat();
 		float g = rng.nextFloat();
 		float b = rng.nextFloat();
 		ka = new ColorType(r/6, g/6, b/6);
 		ks = new ColorType(1.0, 1.0, 1.0);
 		kd = new ColorType(r,g,b);
+		
+		// Temps for toggles
+		kdtemp = new ColorType(kd);
+		katemp = new ColorType(ka);
+		specular = diffuse = ambient = true;
 	}
 
 	public void run() {
@@ -204,11 +219,40 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 			}.start();
 			System.exit(0);
 			break;
+		case 'L':
+		case 'l':
+			toggleLights = !toggleLights;
+			break;
+		case '1':
+			if (toggleLights) {
+				if (light.lights.size() >= 1) {
+					light.lights.get(0).toggleLight();
+				}
+			}
+			break;
+			
+		case '2':
+			if (toggleLights) {
+				if (light.lights.size() >= 2) {
+					light.lights.get(1).toggleLight();
+				}
+			}
+			break;
+			
+		case '3':
+			if (toggleLights) {
+				if (light.lights.size() >= 3) {
+					light.lights.get(2).toggleLight();
+				}
+			}
+			break;
 		case 'R':
 		case 'r':
 			kd = new ColorType(rng.nextFloat(), rng.nextFloat(),
 					rng.nextFloat());
 			ka = new ColorType(kd.r/6, kd.g/6, kd.b/6);
+			kdtemp = new ColorType(kd);
+			katemp = new ColorType(ka);
 			break;
 		case 'C':
 		case 'c':
@@ -216,7 +260,35 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 			break;
 		case 'S':
 		case 's':
-			doSmoothShading = !doSmoothShading;
+			if (specular) {
+				specular = false;
+				ks = new ColorType(0.0, 0.0, 0.0);
+			} else {
+				specular = true;
+				ks = new ColorType(1.0, 1.0, 1.0);
+			}
+			break;
+		case 'D':
+		case 'd':
+			if (diffuse) {
+				diffuse = false;
+				kdtemp = new ColorType(kd);
+				kd = new ColorType(0.0, 0.0, 0.0);
+			} else {
+				diffuse = true;
+				kd = new ColorType(kdtemp);
+			}
+			break;
+		case 'A':
+		case 'a':
+			if (ambient) {
+				ambient = false;
+				katemp = new ColorType(ka);
+				ka = new ColorType(0.0, 0.0, 0.0);
+			} else {
+				ambient = true;
+				ka = new ColorType(katemp);
+			}
 			break;
 		case 'G':
 		case 'g':
@@ -237,6 +309,12 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 			phong = true;
 			flat = gouraud = false;
 			testCase = 2;
+			drawTestCase();
+			break;
+		case 'T':
+		case 't':
+			testCase = (testCase + 1) % numTestCase;
+			lightsInitialized = false;
 			drawTestCase();
 			break;
 		case '<':
@@ -402,19 +480,20 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		// (b) backface culling / backface rejection
 		Vector3D view_vector = new Vector3D((float) 0.0, (float) 0.0,
 				(float) 1.0);
-
-		// define one infinite light source, with color = white
-		ColorType light_color = new ColorType(1.0, 1.0, 1.0);
-		Vector3D light_direction = new Vector3D((float) 0.0,
-				(float) (-1.0 / Math.sqrt(2.0)), (float) (1.0 / Math.sqrt(2.0)));
-		Vector3D light_position = new Vector3D(0.0f, 0f, 200f);
-		InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
-		//infLight.toggleAngular();
-		//infLight.toggleRadial();
-		AmbientLight ambLight = new AmbientLight(light_color, light_direction);
-		Light light = new Light();
-		light.addLight(infLight);
-		light.addLight(ambLight);
+		if (!lightsInitialized) {
+			// define one infinite light source, with color = white
+			ColorType light_color = new ColorType(1.0, 1.0, 1.0);
+			Vector3D light_direction = new Vector3D((float) 0.0,
+					(float) (-1.0 / Math.sqrt(2.0)), (float) (1.0 / Math.sqrt(2.0)));
+			Vector3D light_position = new Vector3D(0.0f, 0f, 200f);
+			InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
+			//infLight.toggleAngular();
+			//infLight.toggleRadial();
+			AmbientLight ambLight = new AmbientLight(light_color, light_direction);
+			light.addLight(infLight);
+			light.addLight(ambLight);
+			lightsInitialized = true;
+		}
 
 		// a triangle mesh
 		Mesh3D mesh;

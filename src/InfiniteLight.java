@@ -6,6 +6,7 @@ public class InfiniteLight extends Light {
 	public InfiniteLight(ColorType color, Vector3D direction) {
 		this.color = new ColorType(color);
 		this.direction = new Vector3D(direction);
+		super.lightIsOn = true;
 	}
 	
 	public ColorType applyLight(Material mat, Vector3D v, Vector3D n, Vector3D p) {
@@ -43,5 +44,9 @@ public class InfiniteLight extends Light {
 			res.b = (float)Math.min(1.0, res.b);
 		}
 		return(res);
+	}
+	
+	public void toggleLight() {
+		lightIsOn = !lightIsOn;
 	}
 }

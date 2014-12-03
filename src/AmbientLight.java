@@ -7,6 +7,7 @@ public class AmbientLight extends Light {
 	public AmbientLight(ColorType color, Vector3D direction) {
 		this.color = color;
 		this.direction = direction;
+		super.lightIsOn = true;
 	}
 	
 	public ColorType applyLight(Material mat, Vector3D v, Vector3D n, Vector3D p) {
@@ -23,5 +24,9 @@ public class AmbientLight extends Light {
 		res.g = (float) Math.min(1.0, res.g);
 		res.b = (float) Math.min(1.0, res.b);
 		return(res);
+	}
+	
+	public void toggleLight() {
+		lightIsOn = !lightIsOn;
 	}
 }

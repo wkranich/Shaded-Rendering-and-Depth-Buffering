@@ -15,6 +15,7 @@ public class PointLight extends Light {
 		a0 = 1;
 		a1 = a2 = .00001f;
 		alpha = 2;
+		super.lightIsOn = true;
 	}
 	
 	public ColorType applyLight(Material mat, Vector3D v, Vector3D n, Vector3D point) {
@@ -72,5 +73,9 @@ public class PointLight extends Light {
 	
 	public void toggleAngular() {
 		angular = !angular;
+	}
+	
+	public void toggleLight() {
+		lightIsOn = !lightIsOn;
 	}
 }

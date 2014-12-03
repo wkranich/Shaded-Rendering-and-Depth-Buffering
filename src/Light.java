@@ -8,10 +8,12 @@ import java.util.*;
  */
 public class Light {
 	
-	public Set<Light> lights;
+	public List<Light> lights;
+	public boolean lightIsOn;
 	
 	public Light() {
-		this.lights = new HashSet<Light>();
+		this.lights = new ArrayList<Light>();
+		lightIsOn = true;
 	}
 	
 	public void addLight(Light newLight) {
@@ -28,12 +30,16 @@ public class Light {
 		ColorType amb = new ColorType();
 		for (Light l : lights) {
 			if (l instanceof AmbientLight) {
-				amb = l.applyLight(mat, v, n, p);
+				if (l.lightIsOn) {
+					amb = l.applyLight(mat, v, n, p);
+				}
 			} else {
-				temp = l.applyLight(mat, v, n, p);
-				res.r += temp.r;
-				res.g += temp.g;
-				res.b += temp.b;
+				if (l.lightIsOn) {
+					temp = l.applyLight(mat, v, n, p);
+					res.r += temp.r;
+					res.g += temp.g;
+					res.b += temp.b;
+				}
 			}
 		}
 		
@@ -48,6 +54,10 @@ public class Light {
 		res.b = (float) Math.min(1.0, res.b);
 		
 		return res;
+	}
+	
+	public void toggleLight() {
+		lightIsOn = !lightIsOn;
 	}
 	
 	

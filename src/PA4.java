@@ -83,7 +83,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 
 		animator = new FPSAnimator(canvas, 60);
 
-		numTestCase = 3;
+		numTestCase = 5;
 		testCase = 0;
 		Nsteps = 12;
 
@@ -185,15 +185,22 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 
 		switch (testCase) {
 		case 0:
-			shadeTest(); /* smooth shaded, sphere and torus */
+			testOne();
 			break;
 		case 1:
-			shadeTest(); /* flat shared, sphere and torus */
+			testTwo();
 			break;
 		case 2:
-			shadeTest();
+			testThree();
+			break;
+		case 3:
+			testFour();
+			break;
+		case 4:
+			testFive();
 			break;
 		}
+		
 	}
 
 	// ***********************************************
@@ -292,7 +299,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 			break;
 		case 'G':
 		case 'g':
-			testCase = 0;
 			gouraud = true;
 			flat = phong = false;
 			drawTestCase();
@@ -301,14 +307,12 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		case 'f':
 			flat = true;
 			gouraud = phong = false;
-			testCase = 1;
 			drawTestCase();
 			break;
 		case 'P':
 		case 'p':
 			phong = true;
 			flat = gouraud = false;
-			testCase = 2;
 			drawTestCase();
 			break;
 		case 'T':
@@ -450,7 +454,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	// Nov 9, 2014 Stan Sclaroff -- removed line and triangle test cases
 	// **************************************************
 
-	void shadeTest() {
+	void testOne() {
 		// the simple example scene includes one sphere and one torus
 		float radius = (float) 50.0;
 		
@@ -481,6 +485,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		Vector3D view_vector = new Vector3D((float) 0.0, (float) 0.0,
 				(float) 1.0);
 		if (!lightsInitialized) {
+			light = new Light();
 			// define one infinite light source, with color = white
 			ColorType light_color = new ColorType(1.0, 1.0, 1.0);
 			Vector3D light_direction = new Vector3D((float) 0.0,
@@ -533,18 +538,281 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 					drawObject(boxMesh, box, n, m, view_vector, light, depthBuff);
 				}
 			}
-
-			// draw triangles for the current surface, using vertex colors
-			// this works for Gouraud and flat shading only (not Phong)
-			
-//			if (k == 3) { // if cylinder
-//				//draw endcap triangle fans
-//				TriangleFan topfan = new TriangleFan(cylinder.getCenter().x, cylinder.getCenter().y, cylinder.getCenter().z, top);
-//				n0 = top
-//				n1 = 
-//			}
 		}
 	}
+	
+	void testTwo() {
+		// the simple example scene includes one sphere and one torus
+		float radius = (float) 50.0;
+		
+		Material mat = new Material(ka, kd, ks, ns);
+		
+		Sphere sphere = new Sphere((float) 512.0, (float) 256.0, (float) 128.0,
+				(float) 3 * radius, Nsteps, Nsteps, mat);		
+		objects = new ArrayList<Shape>();
+		
+		objects.add(sphere);
+		
+
+		// view vector is defined along z axis
+		// this example assumes simple othorgraphic projection
+		// view vector is used in
+		// (a) calculating specular lighting contribution
+		// (b) backface culling / backface rejection
+		Vector3D view_vector = new Vector3D((float) 0.0, (float) 0.0,
+				(float) 1.0);
+		if (!lightsInitialized) {
+			light = new Light();
+			// define one infinite light source, with color = white
+			ColorType light_color = new ColorType(1.0, 1.0, 1.0);
+			Vector3D light_direction = new Vector3D((float) 0.0,
+					(float) -1.0f, (float) 1f);
+			Vector3D light_position = new Vector3D(0.0f, 0f, 500f);
+			PointLight pLight = new PointLight(light_color, light_direction, light_position);
+			pLight.toggleAngular();
+			pLight.toggleRadial();
+			AmbientLight ambLight = new AmbientLight(light_color, light_direction);
+			light.addLight(pLight);
+			light.addLight(ambLight);
+			lightsInitialized = true;
+		}
+
+		// a triangle mesh
+		Mesh3D mesh;
+
+		int i, j, n, m;
+		
+		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
+
+		mesh = sphere.mesh;
+		n = sphere.getN();
+		m = sphere.getM();
+		drawObject(mesh, sphere, n, m, view_vector, light, depthBuff);
+	}
+	
+	void testThree() {
+		// the simple example scene includes one sphere and one torus
+		float radius = (float) 50.0;
+		
+		Material mat = new Material(ka, kd, ks, ns);
+		
+		Sphere sphere = new Sphere((float) 512.0, (float) 256.0, (float) 128.0,
+				(float) 3 * radius, Nsteps, Nsteps, mat);
+		Box box1 = new Box(256.0f, 50f, 128.0f, radius, Nsteps, Nsteps, mat);
+		Box box2 = new Box(768.0f, 50f, 128.0f, radius, Nsteps, Nsteps, mat);
+		Cylinder cylinder = new Cylinder(256.0f, 400f, 128f, radius, radius, Nsteps, Nsteps, radius*2.0f, mat);
+		objects = new ArrayList<Shape>();
+		
+		objects.add(sphere);
+		objects.add(box1);
+		objects.add(box2);
+		objects.add(cylinder);
+		
+
+		// view vector is defined along z axis
+		// this example assumes simple othorgraphic projection
+		// view vector is used in
+		// (a) calculating specular lighting contribution
+		// (b) backface culling / backface rejection
+		Vector3D view_vector = new Vector3D((float) 0.0, (float) 0.0,
+				(float) 1.0);
+		if (!lightsInitialized) {
+			light = new Light();
+			// define one infinite light source, with color = white
+			ColorType light_color = new ColorType(.6f, .6f, .6f);
+			Vector3D light_direction = new Vector3D((float) 0.0,
+					(float) -1.0f, (float) 1f);
+			Vector3D light_position = new Vector3D(0.0f, 700.0f, 500f);
+			InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
+			AmbientLight ambLight = new AmbientLight(light_color, light_direction);
+			light_color = new ColorType(1.0f, 0.0f, 0.0f);
+			light_direction = new Vector3D((float) -1.0,
+					(float) 1.0f, (float) 1f);
+			PointLight pLight = new PointLight(light_color, light_direction, light_position);
+			light.addLight(pLight);
+			light.addLight(infLight);
+			light.addLight(ambLight);
+			lightsInitialized = true;
+		}
+
+		// a triangle mesh
+		Mesh3D mesh;
+
+		int i, j, n, m;
+		
+		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
+		for (int k = 0; k < 4; ++k) // loop twice: shade sphere, then torus
+		{
+			if (k == 0) {
+				mesh = sphere.mesh;
+				n = sphere.getN();
+				m = sphere.getM();
+				drawObject(mesh, sphere, n, m, view_vector, light, depthBuff);
+			} else if (k == 1) {
+				n = box1.getN();
+				m = box1.getM();
+				for (Mesh3D boxMesh : box1.meshes) {
+					drawObject(boxMesh, box1, n, m, view_vector, light, depthBuff);
+				}
+			} else if (k == 2) {
+				n = box2.getN();
+				m = box2.getM();
+				for (Mesh3D boxMesh : box2.meshes) {
+					drawObject(boxMesh, box2, n, m, view_vector, light, depthBuff);
+				}
+			} else {
+				mesh = cylinder.mesh;
+				n = cylinder.getN();
+				m = cylinder.getM();
+				drawObject(mesh, cylinder, n, m, view_vector, light, depthBuff);
+			}
+		}
+	}
+	
+	void testFour() {
+		// the simple example scene includes one sphere and one torus
+		float radius = (float) 50.0;
+		
+		Material mat = new Material(ka, kd, ks, ns);
+		
+		Ellipsoid ellipsoid = new Ellipsoid((float) 512.0, (float) 256.0, (float) 128.0,
+				(float) 3 * radius, radius, radius, Nsteps, Nsteps, mat);
+		Torus torus = new Torus(200f, 256.0f, 300f, radius, radius*2f, Nsteps, Nsteps, mat);
+		Cylinder cylinder = new Cylinder(768.0f, 256.0f, 128f, radius, radius, Nsteps, Nsteps, radius*2.0f, mat);
+		objects = new ArrayList<Shape>();
+		
+		objects.add(ellipsoid);
+		objects.add(torus);
+		objects.add(cylinder);
+		
+
+		// view vector is defined along z axis
+		// this example assumes simple othorgraphic projection
+		// view vector is used in
+		// (a) calculating specular lighting contribution
+		// (b) backface culling / backface rejection
+		Vector3D view_vector = new Vector3D((float) 0.0, (float) 0.0,
+				(float) 1.0);
+		if (!lightsInitialized) {
+			light = new Light();
+			// define one infinite light source, with color = white
+			ColorType light_color = new ColorType(.6f, .6f, .6f);
+			Vector3D light_direction = new Vector3D((float) 0.0,
+					(float) -1.0f, (float) 1f);
+			Vector3D light_position = new Vector3D(0.0f, 0.0f, 1000f);
+			InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
+			AmbientLight ambLight = new AmbientLight(light_color, light_direction);
+			light_direction = new Vector3D((float) 1.0,
+					(float) -1.0f, (float) 1f);
+			PointLight pLight = new PointLight(light_color, light_direction, light_position);
+			pLight.toggleRadial();
+			light.addLight(pLight);
+			light.addLight(infLight);
+			light.addLight(ambLight);
+			lightsInitialized = true;
+		}
+
+		// a triangle mesh
+		Mesh3D mesh;
+
+		int i, j, n, m;
+		
+		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
+		for (int k = 0; k < 3; ++k) // loop twice: shade sphere, then torus
+		{
+			if (k == 0) {
+				mesh = ellipsoid.mesh;
+				n = ellipsoid.getN();
+				m = ellipsoid.getM();
+				drawObject(mesh, ellipsoid, n, m, view_vector, light, depthBuff);
+			} else if (k == 1) {
+				mesh = torus.mesh;
+				n = torus.getN();
+				m = torus.getM();
+				drawObject(mesh, torus, n, m, view_vector, light, depthBuff);
+			} else {
+				mesh = cylinder.mesh;
+				n = cylinder.getN();
+				m = cylinder.getM();
+				drawObject(mesh, cylinder, n, m, view_vector, light, depthBuff);
+			}
+		}
+	}
+	
+	void testFive() {
+		// the simple example scene includes one sphere and one torus
+		float radius = (float) 50.0;
+		
+		Material mat = new Material(ka, kd, ks, ns);
+		
+		Sphere sphere = new Sphere((float) 248.0, (float) 256.0, (float) 128.0,
+				(float) 3 * radius, Nsteps, Nsteps, mat);
+		Box box1 = new Box(512.0f, 100f, 128.0f, radius*1.7f, Nsteps, Nsteps, mat);
+		Torus torus = new Torus(768.0f, 350f, 128f, radius*0.2f, radius*2, Nsteps, Nsteps, mat);
+		objects = new ArrayList<Shape>();
+		
+		objects.add(sphere);
+		objects.add(box1);
+		objects.add(torus);
+		
+
+		// view vector is defined along z axis
+		// this example assumes simple othorgraphic projection
+		// view vector is used in
+		// (a) calculating specular lighting contribution
+		// (b) backface culling / backface rejection
+		Vector3D view_vector = new Vector3D((float) 0.0, (float) 0.0,
+				(float) 1.0);
+		if (!lightsInitialized) {
+			light = new Light();
+			// define one infinite light source, with color = white
+			ColorType light_color = new ColorType(.6f, .6f, .6f);
+			Vector3D light_direction = new Vector3D((float) 0.0,
+					(float) -1.0f, (float) 1f);
+			Vector3D light_position = new Vector3D(1500.0f, 248.0f, 500f);
+			PointLight pLight1 = new PointLight(light_color, light_direction, light_position);
+			AmbientLight ambLight = new AmbientLight(light_color, light_direction);
+			light_direction = new Vector3D((float) -1.0,
+					(float) 1.0f, (float) 1f);
+			light_position = new Vector3D(-300.0f, 248.0f, 500f);
+			PointLight pLight2 = new PointLight(light_color, light_direction, light_position);
+			pLight1.toggleAngular();
+			pLight2.toggleAngular();
+			light.addLight(pLight1);
+			light.addLight(pLight2);
+			light.addLight(ambLight);
+			lightsInitialized = true;
+		}
+
+		// a triangle mesh
+		Mesh3D mesh;
+
+		int i, j, n, m;
+		
+		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
+		for (int k = 0; k < 3; ++k) // loop twice: shade sphere, then torus
+		{
+			if (k == 0) {
+				mesh = sphere.mesh;
+				n = sphere.getN();
+				m = sphere.getM();
+				drawObject(mesh, sphere, n, m, view_vector, light, depthBuff);
+			} else if (k == 1) {
+				n = box1.getN();
+				m = box1.getM();
+				for (Mesh3D boxMesh : box1.meshes) {
+					drawObject(boxMesh, box1, n, m, view_vector, light, depthBuff);
+				}
+			} else {
+				mesh = torus.mesh;
+				n = torus.getN();
+				m = torus.getM();
+				drawObject(mesh, torus, n, m, view_vector, light, depthBuff);
+			}
+		}
+	}
+	
+	
 	
 	private void drawObject(Mesh3D mesh, Shape obj, int n, int m, Vector3D view_vector, Light light, DepthBuffer depthBuff) {
 		int i, j;
@@ -577,12 +845,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						n0 = mesh.n[i][j];
 						n1 = mesh.n[i][j + 1];
 						n2 = mesh.n[i + 1][j + 1];
-//						tri[0].c = light.applyLight(mats[k], view_vector,
-//								n0, v0);
-//						tri[1].c = light.applyLight(mats[k], view_vector,
-//								n1, v1);
-//						tri[2].c = light.applyLight(mats[k], view_vector,
-//								n2, v2);
 					}
 					else if (gouraud) {
 						// vertex colors for Gouraud shading
@@ -637,12 +899,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 						n0 = mesh.n[i][j];
 						n1 = mesh.n[i + 1][j + 1];
 						n2 = mesh.n[i + 1][j];
-//						tri[0].c = light.applyLight(mats[k], view_vector,
-//								n0, v0);
-//						tri[1].c = light.applyLight(mats[k], view_vector,
-//								n1, v1);
-//						tri[2].c = light.applyLight(mats[k], view_vector,
-//								n2, v2);
 					}
 					else if (gouraud) {
 						// vertex colors for Gouraud shading

@@ -13,8 +13,8 @@ public class PointLight extends Light {
 		this.direction = direction;
 		this.lightPosition = lightPosition;
 		a0 = 1;
-		a1 = a2 = .00001f;
-		alpha = 2;
+		a1 = a2 = .000001f;
+		alpha = 45;
 		super.lightIsOn = true;
 	}
 	
@@ -52,7 +52,7 @@ public class PointLight extends Light {
 			if (angular) {
 				dot = L.dotProduct(direction);
 				//System.out.println(dot);
-				if (dot < Math.cos(0.785398163)) {
+				if (dot < Math.cos(1.57079633)) {
 					res.r *= Math.pow(dot, alpha);
 					res.g *= Math.pow(dot, alpha);
 					res.b *= Math.pow(dot, alpha);

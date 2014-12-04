@@ -1,4 +1,10 @@
-
+/*
+ * AmbientLight.java
+ * 
+ * Models an ambient light source to illuminate from all directions
+ * 
+ * History: Nov 30, 2014 Created by William Kranich
+ */
 public class AmbientLight extends Light {
 
 	public Vector3D direction;

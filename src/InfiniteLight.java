@@ -1,4 +1,11 @@
-
+/*
+ * InfiniteLight.java
+ * 
+ * Type of lighting model that models a light source infinitely far away; like the sun
+ * 
+ * History: Nov 30, 2014 Created by William Kranich
+ * 						 Referencing code by Stan Sclaroff
+ */
 public class InfiniteLight extends Light {
 	public Vector3D direction;
 	public ColorType color;
@@ -13,12 +20,6 @@ public class InfiniteLight extends Light {
 		ColorType res = new ColorType();
 		
 		double dot = direction.dotProduct(n);
-		//TODO: remember to remove this
-//		if (mat.isAmbient()) {
-//			res.r = (float)(color.r * mat.get_kamb().r);
-//			res.g = (float)(color.g * mat.get_kamb().g);
-//			res.b = (float)(color.b * mat.get_kamb().b);
-//		}
 		
 		if (dot > 0.0) {
 			if (mat.isDiffuse()) {

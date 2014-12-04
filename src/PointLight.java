@@ -1,4 +1,10 @@
-
+/*
+ * PointLight.java
+ * 
+ * Type of lighting model that models a light source from a specific position
+ * 
+ * History: Nov 30, 2014 Created by William Kranich
+ */
 public class PointLight extends Light {
 	public Vector3D direction;
 	public Vector3D lightPosition;

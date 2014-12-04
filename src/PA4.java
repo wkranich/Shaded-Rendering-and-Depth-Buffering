@@ -1,3 +1,18 @@
+/*
+ * PA4.java
+ * 
+ * Author: William Kranich (wkranich@bu.edu)
+ * Boston University CS480
+ * 
+ * Runs a depth buffering and shaded rendering program
+ * 
+ * Supports Flat, Gouraud, and Phong shading
+ * Infinite Light, Point Light (radial and angular attenuation, and Ambient Light (including colored light)
+ * Spheres, Ellipsoids, Toruses, Cylinders, and Boxes
+ * Ambient, Diffuse, and Specular material qualities
+ * 
+ */
+
 import javax.swing.*;
 
 import java.awt.Color;
@@ -208,9 +223,16 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	// ***********************************************
 	public void keyTyped(KeyEvent key) {
 		// Q,q: quit
-		// C,c: clear polygon (set vertex count=0)
+		// C,c: clear pixel buffer
 		// R,r: randomly change the color
-		// S,s: toggle the smooth shading
+		// P,p: toggle phong shading
+		// F,f: toggle flat shading
+		// G,g: toggle gouraud shading
+		// A,a: toggle ambient term
+		// S,s: toggle specular term
+		// D,d: toggle diffuse term
+		// L,l: toggle light control
+		// 1,2,3: toggle lights on and off
 		// T,t: show testing examples
 		// >: increase the step number for examples
 		// <: decrease the step number for examples
@@ -451,11 +473,9 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 
 	// **************************************************
 	// Test Cases
-	// Nov 9, 2014 Stan Sclaroff -- removed line and triangle test cases
 	// **************************************************
 
 	void testOne() {
-		// the simple example scene includes one sphere and one torus
 		float radius = (float) 50.0;
 		
 		Material mat = new Material(ka, kd, ks, ns);
@@ -486,14 +506,10 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 				(float) 1.0);
 		if (!lightsInitialized) {
 			light = new Light();
-			// define one infinite light source, with color = white
 			ColorType light_color = new ColorType(1.0, 1.0, 1.0);
 			Vector3D light_direction = new Vector3D((float) 0.0,
 					(float) (-1.0 / Math.sqrt(2.0)), (float) (1.0 / Math.sqrt(2.0)));
-			Vector3D light_position = new Vector3D(0.0f, 0f, 200f);
 			InfiniteLight infLight = new InfiniteLight(light_color, light_direction);
-			//infLight.toggleAngular();
-			//infLight.toggleRadial();
 			AmbientLight ambLight = new AmbientLight(light_color, light_direction);
 			light.addLight(infLight);
 			light.addLight(ambLight);
@@ -507,7 +523,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		
 		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
 
-		for (int k = 0; k < 5; ++k) // loop twice: shade sphere, then torus
+		for (int k = 0; k < 5; ++k)
 		{
 			if (k == 0) {
 				mesh = sphere.mesh;
@@ -526,8 +542,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 				drawObject(mesh, ellipsoid, n, m, view_vector, light, depthBuff);
 			} else if (k == 3) {
 				mesh = cylinder.mesh;
-				//top = cylinder.top;
-				//bot = cylinder.bot;
 				n = cylinder.getN();
 				m = cylinder.getM();
 				drawObject(mesh, cylinder, n, m, view_vector, light, depthBuff);
@@ -542,7 +556,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	}
 	
 	void testTwo() {
-		// the simple example scene includes one sphere and one torus
 		float radius = (float) 50.0;
 		
 		Material mat = new Material(ka, kd, ks, ns);
@@ -563,7 +576,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 				(float) 1.0);
 		if (!lightsInitialized) {
 			light = new Light();
-			// define one infinite light source, with color = white
 			ColorType light_color = new ColorType(1.0, 1.0, 1.0);
 			Vector3D light_direction = new Vector3D((float) 0.0,
 					(float) -1.0f, (float) 1f);
@@ -591,7 +603,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	}
 	
 	void testThree() {
-		// the simple example scene includes one sphere and one torus
 		float radius = (float) 50.0;
 		
 		Material mat = new Material(ka, kd, ks, ns);
@@ -618,7 +629,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 				(float) 1.0);
 		if (!lightsInitialized) {
 			light = new Light();
-			// define one infinite light source, with color = white
 			ColorType light_color = new ColorType(.6f, .6f, .6f);
 			Vector3D light_direction = new Vector3D((float) 0.0,
 					(float) -1.0f, (float) 1f);
@@ -641,7 +651,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		int i, j, n, m;
 		
 		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
-		for (int k = 0; k < 4; ++k) // loop twice: shade sphere, then torus
+		for (int k = 0; k < 4; ++k)
 		{
 			if (k == 0) {
 				mesh = sphere.mesh;
@@ -670,7 +680,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	}
 	
 	void testFour() {
-		// the simple example scene includes one sphere and one torus
 		float radius = (float) 50.0;
 		
 		Material mat = new Material(ka, kd, ks, ns);
@@ -695,7 +704,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 				(float) 1.0);
 		if (!lightsInitialized) {
 			light = new Light();
-			// define one infinite light source, with color = white
 			ColorType light_color = new ColorType(.6f, .6f, .6f);
 			Vector3D light_direction = new Vector3D((float) 0.0,
 					(float) -1.0f, (float) 1f);
@@ -718,7 +726,7 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 		int i, j, n, m;
 		
 		DepthBuffer depthBuff = new DepthBuffer(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, buff);
-		for (int k = 0; k < 3; ++k) // loop twice: shade sphere, then torus
+		for (int k = 0; k < 3; ++k)
 		{
 			if (k == 0) {
 				mesh = ellipsoid.mesh;
@@ -740,7 +748,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 	}
 	
 	void testFive() {
-		// the simple example scene includes one sphere and one torus
 		float radius = (float) 50.0;
 		
 		Material mat = new Material(ka, kd, ks, ns);
@@ -765,7 +772,6 @@ public class PA4 extends JFrame implements GLEventListener, KeyListener,
 				(float) 1.0);
 		if (!lightsInitialized) {
 			light = new Light();
-			// define one infinite light source, with color = white
 			ColorType light_color = new ColorType(.6f, .6f, .6f);
 			Vector3D light_direction = new Vector3D((float) 0.0,
 					(float) -1.0f, (float) 1f);

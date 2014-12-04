@@ -6,6 +6,8 @@
 //
 // Created by William Kranich, based on CS480/680 PA1 and code provided by Scan Sclaroff
 // Edited line drawing to support only floating point arithmetic using DDA Algorithm
+//
+// Extended to do normal interpolation for Phong shading
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;

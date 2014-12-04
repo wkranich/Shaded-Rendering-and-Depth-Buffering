@@ -1,6 +1,6 @@
 /*
  * Cylinder.java
- * Class for a 3D torus
+ * Class for a 3D cylinder
  * 
  * History: Nov 27, 2014 Created by William Kranich
  * 
